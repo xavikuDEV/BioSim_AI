@@ -1,0 +1,13 @@
+site_name: BioSim_AI Wiki
+theme:
+  name: material
+  palette:
+    scheme: slate
+    primary: teal
+
+nav:
+  - Inicio: index.md
+  - Leyes Universales:
+      - Gravedad: systems/SOURCE_gravity.md
+  # Nota: README y Structure están fuera de docs/, 
+  # por ahora los omitimos o los copiaremos dentro.
