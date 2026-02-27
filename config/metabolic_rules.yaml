@@ -1,0 +1,6 @@
+metabolism:
+  GLYCOGEN_BURN_RATE: 0.01
+  FAT_TO_ENERGY_RATIO: 0.5
+  PROTEIN_DECAY_RATE: 0.005
+  BASE_METABOLIC_RATE: 0.02  # E_basal
+  EFFORT_MULTIPLIER: 1.0     # Factor k en E = k * (v^2 * m)
