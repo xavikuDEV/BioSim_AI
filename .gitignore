@@ -7,3 +7,4 @@ data/logs/*.jsonl
 data/snapshots/*.bin
 Structure.md
 .agent/
+site/
