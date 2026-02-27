@@ -15,7 +15,7 @@
 - [x] Panel de Control (BioSim_AI_Menu.ps1).
 
 ## 🌌 ERA 0: GÉNESIS (Próximo Paso)
-- [ ] **Spawn Masivo:** 10,000 entidades en la Sala Blanca.
+- [x] **Spawn Masivo:** 10,000 entidades en la Sala Blanca.
 - [ ] **Colisión AABB:** Detección de suelo y muros sin librerías.
 - [ ] **Persistencia WAL:** Registro de eventos de muerte en SQLite.
 - [ ] **Optimización Espacial:** Implementación de Quadtree (O log n).

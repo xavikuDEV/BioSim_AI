@@ -1,25 +1,21 @@
-# tests/test_gravity_drop.py
+# tests/unit/test_gravity_drop.py
 from core.registry import REGISTRY
 from engine.movement_engine import update_physics
-from core.constants import WORLD
 
 def test_drop():
-    # Crear entidad a 10m de altura
+    # Limpieza obligatoria antes de testear
+    REGISTRY.clear()
+    
     eid = REGISTRY.create_entity(pos=[0, 10, 0])
+    
+    # Verificación de seguridad
+    assert eid is not None, "Error: El registro está lleno"
+    
     body = REGISTRY.physics[eid]
+    initial_y = body.pos[1]
     
-    print(f"Inicio: Pos {body.pos}")
-    
-    # Simular 10 ticks (0.16s aprox)
-    for _ in range(10):
+    # Simular caída
+    for _ in range(5):
         update_physics()
-    
-    print(f"Final (10 ticks): Pos {body.pos}")
-    
-    if body.pos[1] < 10:
-        print("✅ ÉXITO: La gravedad es soberana. La entidad está cayendo.")
-    else:
-        print("❌ ERROR: La entidad levita.")
-
-if __name__ == "__main__":
-    test_drop()
+        
+    assert body.pos[1] < initial_y, f"La gravedad falló: {body.pos[1]} >= {initial_y}"

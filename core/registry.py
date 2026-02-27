@@ -13,21 +13,33 @@ class EntityRegistry:
         self.active_entities = []
         self.available_ids = list(range(capacity))
 
-    def create_entity(self, pos=[0,0,0], mass=1.0):
+    def create_entity(self, pos=[0.0, 0.0, 0.0], mass=1.0):
+        """Asigna un ID y componentes a una nueva entidad."""
         if not self.available_ids:
             return None
         
-        entity_id = self.available_ids.pop()
+        # FIFO: Usamos el ID más antiguo disponible
+        entity_id = self.available_ids.pop(0)
         self.active_entities.append(entity_id)
         
-        # Asignar componentes iniciales
-        self.physics[entity_id] = PhysicsBody(pos=pos, vel=[0,0,0], mass=mass)
+        # Inicialización de materia
+        # Usamos list(pos) para evitar que todas las entidades compartan la misma referencia
+        self.physics[entity_id] = PhysicsBody(pos=list(pos), vel=[0.0, 0.0, 0.0], mass=mass)
         self.biology[entity_id] = BioLayer()
         
         return entity_id
 
     def get_count(self):
+        """Devuelve el número de entidades vivas."""
         return len(self.active_entities)
 
-# Instancia global del registro
+    def clear(self):
+        """Piscina de purificación: Reinicia el universo en memoria."""
+        self.active_entities = []
+        self.available_ids = list(range(self.capacity))
+        self.physics = [None] * self.capacity
+        self.biology = [None] * self.capacity
+        print("🧹 Registro limpiado: 10,000 IDs disponibles.")
+
+# Instancia global única
 REGISTRY = EntityRegistry()
