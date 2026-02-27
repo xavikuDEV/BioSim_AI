@@ -2,23 +2,31 @@
 from ursina import *
 
 def start_laboratory():
-    # Inicialización estándar
     app = Ursina()
     
-    # Configuración de ventana de Dios
-    window.title = "BioSim_AI | The Sovereign Genesis (White Room)"
-    window.borderless = False
-    window.exit_button.visible = False
+    # Ajustes de Interfaz para el Arquitecto
+    window.title = "BioSim_AI | Sovereign Genesis"
     window.fps_counter.enabled = True
-    window.color = color.black
+    window.fps_counter.color = color.green
+    window.fps_counter.scale = 2 # Hacer los números más grandes
+    window.color = color.black # Fondo para contraste
     
-    # El plano de la realidad (Suelo)
-    Entity(model='grid', scale=100, rotation=(90,0,0), color=color.dark_gray)
+    # Solución al error de 'grid': Usamos un plano con textura manual
+    ground = Entity(
+        model='plane', 
+        scale=100, 
+        texture='white_cube', # Textura básica de Ursina
+        texture_scale=(100,100), 
+        color=color.dark_gray
+    )
     
-    # Cámara para el Arquitecto (Libre movimiento)
+    # Iluminación básica (Soberanía visual)
+    PointLight(parent=camera, position=(0,10,-10), color=color.white)
+    
+    # Cámara Libre
     EditorCamera()
     
-    print("🔬 Sala Blanca lista para experimentos.")
+    print("🔬 Sala Blanca: Cuadrícula restaurada e iluminación activa.")
     app.run()
 
 if __name__ == "__main__":
