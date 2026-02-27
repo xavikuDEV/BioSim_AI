@@ -1,7 +1,17 @@
-# Este script leerá si existen archivos en engine/collision y marcará el ROADMAP
-$roadmap = Get-Content "docs/ROADMAP.md"
+$path = "docs/ROADMAP.md"
+$content = Get-Content $path -Raw
+
+# Marcamos los hitos si los archivos existen
 if (Test-Path "engine/collision/aabb.py") {
-    $roadmap = $roadmap -replace "- \[ \] \*\*Colisión AABB\*\*", "- [x] **Colisión AABB**"
+    $content = $content -replace "- \[ \] \*\*Colisión AABB\*\*", "- [x] **Colisión AABB**"
 }
-$roadmap | Out-File "docs/ROADMAP.md" -Encoding utf8
-Write-Host "📍 Roadmap actualizado con el progreso físico." -ForegroundColor Cyan
+if (Test-Path "core/database.py") {
+    $content = $content -replace "- \[ \] \*\*Persistencia WAL\*\*", "- [x] **Persistencia WAL**"
+}
+# Aseguramos Spawn Masivo
+if (Test-Path "laboratory/white_room.py") {
+    $content = $content -replace "- \[ \] \*\*Spawn Masivo\*\*", "- [x] **Spawn Masivo**"
+}
+
+$content | Set-Content $path -Encoding UTF8
+Write-Host "📍 Roadmap sincronizado." -ForegroundColor Cyan

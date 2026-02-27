@@ -1,21 +1,35 @@
-# tests/unit/test_gravity_drop.py
 from core.registry import REGISTRY
 from engine.movement_engine import update_physics
+import pytest
 
-def test_drop():
-    # Limpieza obligatoria antes de testear
+def test_physics_precision():
+    """Valida la Gravedad y la Precisión del Rebote (Restitución)."""
     REGISTRY.clear()
-    
+    # Soltamos desde 10m
     eid = REGISTRY.create_entity(pos=[0, 10, 0])
-    
-    # Verificación de seguridad
-    assert eid is not None, "Error: El registro está lleno"
-    
     body = REGISTRY.physics[eid]
-    initial_y = body.pos[1]
     
-    # Simular caída
-    for _ in range(5):
+    # --- FASE 1: CAÍDA ---
+    # Simulamos suficientes ticks para que choque (aprox 1.5s a 60fps = 90 ticks)
+    max_impact_vel = 0
+    for _ in range(100):
         update_physics()
+        if body.vel[1] < max_impact_vel:
+            max_impact_vel = body.vel[1]
         
-    assert body.pos[1] < initial_y, f"La gravedad falló: {body.pos[1]} >= {initial_y}"
+        # Si la velocidad cambia de signo, es que ha rebotado
+        if body.vel[1] > 0:
+            break
+            
+    assert max_impact_vel < -10, "La entidad no ganó suficiente velocidad de caída"
+    
+    # --- FASE 2: REBOTE ---
+    # Verificamos la Ley de Restitución: v_final = -v_inicial * 0.5
+    # Esperamos que la velocidad post-choque sea aprox la mitad de la de impacto
+    expected_rebound = abs(max_impact_vel) * 0.5
+    
+    # Usamos pytest.approx para tolerar errores de redondeo de coma flotante
+    assert body.vel[1] == pytest.approx(expected_rebound, rel=0.1), \
+        f"Rebote incorrecto. Esperado: {expected_rebound}, Obtenido: {body.vel[1]}"
+
+    print(f"\n✅ FÍSICA VALIDADA: Impacto {max_impact_vel:.2f} -> Rebote {body.vel[1]:.2f}")

@@ -15,3 +15,11 @@ class BioLayer:
     glycogen: float = 100.0  # Energía inmediata
     fat: float = 10.0       # Reserva largo plazo
     protein: float = 100.0  # Estructura (Salud)
+
+class BioLayer:
+    def __init__(self, energy=100.0):
+        self.energy = energy
+        self.max_energy = 100.0
+        self.is_alive = True
+        self.age = 0
+        self.metabolic_rate = 0.05 # Costo base por segundo

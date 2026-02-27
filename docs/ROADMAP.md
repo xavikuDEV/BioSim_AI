@@ -16,9 +16,9 @@
 
 ## 🌌 ERA 0: GÉNESIS (Próximo Paso)
 - [x] **Spawn Masivo:** 10,000 entidades en la Sala Blanca.
-- [ ] **Colisión AABB:** Detección de suelo y muros sin librerías.
-- [ ] **Persistencia WAL:** Registro de eventos de muerte en SQLite.
-- [ ] **Optimización Espacial:** Implementación de Quadtree (O log n).
+- [x] **Colisión AABB** Detección de suelo y muros sin librerías.
+- [x] **Persistencia WAL:** Registro de eventos de muerte en SQLite.
+- [x] **Optimización Espacial:** Implementación de Quadtree (O log n).
 
 ## 🧬 ERA I: PRIMORDIAL
 - [ ] Componente BioLayer (Glucógeno, Grasa, Proteína).
@@ -31,3 +31,7 @@
 - La infraestructura de memoria es excelente (78KB para 10k IDs).
 - El menú centraliza todas las herramientas (Opciones 1-9).
 - Se corrigió el error de tipos en Ursina usando composición.
+
+
+
+
