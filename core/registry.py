@@ -1,6 +1,7 @@
 # core/registry.py
 import numpy as np
 from core.components import PhysicsBody, BioLayer
+from engine.factory import FACTORY
 
 class EntityRegistry:
     def __init__(self, capacity: int = 10000):
@@ -13,8 +14,8 @@ class EntityRegistry:
         self.active_entities = []
         self.available_ids = list(range(capacity))
 
-    def create_entity(self, pos=[0.0, 0.0, 0.0], mass=1.0):
-        """Asigna un ID y componentes a una nueva entidad."""
+    def create_entity(self, pos=[0.0, 0.0, 0.0]):
+        """Asigna un ID y componentes usando la Factoría Biológica."""
         if not self.available_ids:
             return None
         
@@ -22,10 +23,11 @@ class EntityRegistry:
         entity_id = self.available_ids.pop(0)
         self.active_entities.append(entity_id)
         
-        # Inicialización de materia
-        # Usamos list(pos) para evitar que todas las entidades compartan la misma referencia
-        self.physics[entity_id] = PhysicsBody(pos=list(pos), vel=[0.0, 0.0, 0.0], mass=mass)
-        self.biology[entity_id] = BioLayer()
+        # SOLUCIÓN MODULAR: Delegamos el ensamblaje a la Factoría
+        phys, bio = FACTORY.create_primordial_agent(pos)
+        
+        self.physics[entity_id] = phys
+        self.biology[entity_id] = bio
         
         return entity_id
 
