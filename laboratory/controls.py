@@ -1,6 +1,7 @@
+# laboratory/controls.py
 from ursina import camera, Vec3, application, time, color, mouse
 
-def handle_god_keys(key, lab_state, ui, spawn_func):
+def handle_god_keys(key, lab_state, ui, player, spawn_func): # <--- AÑADIMOS 'player'
     # ESC para liberar el ratón
     if key == 'escape':
         mouse.locked = not mouse.locked
@@ -22,11 +23,9 @@ def handle_god_keys(key, lab_state, ui, spawn_func):
 
     # Cámara y Navegación
     if key == 'c':
-        # Resetear posición del jugador (FirstPersonController)
-        # Lo ponemos a una altura de 30, mirando al centro (0,0,0) desde atrás
+        # Ahora 'player' sí existe en este ámbito
         player.position = (0, 30, -100)
-        player.rotation = (0, 0, 0) # Resetea el cuello y el cuerpo
-        # Forzar a la cámara interna a mirar al centro
+        player.rotation = (0, 0, 0)
         camera.rotation = (0, 0, 0)
         print("📍 Cámara de Dios centrada.")
         

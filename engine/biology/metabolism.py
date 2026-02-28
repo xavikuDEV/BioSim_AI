@@ -2,30 +2,39 @@
 from core.registry import REGISTRY
 from core.database import log_death
 
-def update_metabolism(dt=0.016):
-    """Calcula el consumo de energía de todas las entidades vivas."""
+def update_metabolism():
+    """Ejecuta la termodinámica biológica en cascada (Glucógeno -> Grasa -> Proteína)."""
     to_kill = []
     
-    # Usamos list() para evitar errores si la lista cambia durante el bucle
     for eid in list(REGISTRY.active_entities):
         bio = REGISTRY.biology[eid]
         phys = REGISTRY.physics[eid]
+        dna = bio.genome
         
-        if not bio or not phys: continue
+        if not bio or not phys or not dna: continue
 
-        # Costo cinético: v^2 (quemar energía por movimiento)
+        # 1. CÁLCULO DE GASTO (Fórmula SSoT: E = Base + v^2 * m)
+        base_cost = 0.05 * dna.mass * dna.metabolic_efficiency
         speed_sq = sum(v**2 for v in phys.vel)
-        total_cost = bio.metabolic_rate + (speed_sq * 0.001)
+        kinetic_cost = speed_sq * dna.mass * 0.01 # La masa penaliza el movimiento
         
-        bio.energy -= total_cost
+        total_drain = (base_cost + kinetic_cost) / dna.longevity
+        
+        # 2. CASCADA DE TANQUES
+        if bio.glycogen > 0:
+            bio.glycogen -= total_drain
+        elif bio.fat > 0:
+            bio.fat -= total_drain * 0.5 # La grasa rinde el doble pero no da 'explosividad'
+        else:
+            bio.protein -= total_drain * 2.0 # Consumir músculo es ineficiente y letal
+            
         bio.age += 1
         
-        # Umbral de Muerte por Inanición
-        if bio.energy <= 0:
+        # 3. UMBRAL DE MUERTE
+        if bio.protein <= 0:
             bio.is_alive = False
             to_kill.append(eid)
             
-    # Procesar muertes
     for eid in to_kill:
-        log_death(eid, cause="Inanición (Agotamiento de Energía)")
-        REGISTRY.remove_entity(eid) 
+        log_death(eid, cause="Inanición (Falla Estructural)")
+        REGISTRY.remove_entity(eid)

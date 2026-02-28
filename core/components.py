@@ -1,25 +1,24 @@
 # core/components.py
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
+# Componente de Materia: Define la existencia física.
 @dataclass(slots=True)
 class PhysicsBody:
-    """Componente de Materia: Define la existencia física."""
-    pos: list[float]      # [x, y, z]
-    vel: list[float]      # [vx, vy, vz]
-    mass: float
+    pos: list[float]
+    vel: list[float] = field(default_factory=lambda: [0.0, 0.0, 0.0])
+    mass: float = 1.0
     radius: float = 0.5
 
+# Componente de Energía: Define la existencia metabólica.
 @dataclass(slots=True)
 class BioLayer:
-    """Componente de Metabolismo: Los 3 tanques de energía."""
-    glycogen: float = 100.0  # Energía inmediata
-    fat: float = 10.0       # Reserva largo plazo
-    protein: float = 100.0  # Estructura (Salud)
-
-class BioLayer:
-    def __init__(self, energy=100.0):
-        self.energy = energy
-        self.max_energy = 100.0
-        self.is_alive = True
-        self.age = 0
-        self.metabolic_rate = 0.05 # Costo base por segundo
+    # --- JERARQUÍA DE TANQUES (SSoT) ---
+    glycogen: float = 100.0   # Tanque 1: Uso inmediato (Carbohidratos)
+    fat: float = 10.0        # Tanque 2: Reserva (Lípidos)
+    protein: float = 100.0   # Tanque 3: Estructura muscular (Vida/Salud)
+    
+    # --- ESTADOS VITALES ---
+    is_alive: bool = True
+    age: int = 0
+    generation: int = 0
+    genome: object = None    # Referencia al ADN del individuo

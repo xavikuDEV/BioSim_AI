@@ -1,25 +1,36 @@
 # tools/update_roadmap.ps1
 $path = "docs/ROADMAP.md"
-$content = Get-Content $path -Raw # <--- CORREGIDO: Era Get-Content
-
-function Mark-Hito([string]$hito, [bool]$condition) {
-    if ($condition) {
-        return $script:content -replace "- \[ \] \*\*$hito\*\*", "- [x] **$hito**"
-    }
-    return $script:content
+if (-not (Test-Path $path)) { 
+    Write-Host "⚠️ No se encontró ROADMAP.md" -ForegroundColor Yellow
+    return 
 }
 
-# Comprobaciones
-$has_friction = [bool](Select-String -Path "engine/movement_engine.py" -Pattern "AIR_RESISTANCE" -ErrorAction SilentlyContinue)
-$has_bounds = [bool](Select-String -Path "engine/movement_engine.py" -Pattern "WORLD_SIZE" -ErrorAction SilentlyContinue)
-$has_quadtree = Test-Path "engine/collision/quadtree.py"
-$has_db = Test-Path "core/database.py"
+$content = Get-Content $path -Raw
 
-$content = Mark-Hito "Colisión AABB" (Test-Path "engine/collision/aabb.py")
-$content = Mark-Hito "Persistencia WAL" $has_db
-$content = Mark-Hito "Optimización Espacial" $has_quadtree
-$content = Mark-Hito "Leyes de Frontera" $has_bounds
-$content = Mark-Hito "Resistencia Atmosférica" $has_friction
+function Update-Hito([string]$text, [string]$hito, [bool]$condition) {
+    if ($condition) {
+        # Escapamos caracteres especiales de forma segura para PowerShell
+        $escapedHito = [regex]::Escape($hito)
+        # Buscamos el patrón "- [ ] **Hito**"
+        $pattern = "(?m)^-\s*\[\s*\]\s*\*\*$escapedHito\*\*"
+        $replacement = "- [x] **$hito**"
+        return $text -replace $pattern, $replacement
+    }
+    return $text
+}
 
+# --- COMPROBACIONES EN EL NUEVO PUZLE MODULAR ---
+$has_friction = [bool](Select-String -Path "engine/physics/forces.py" -Pattern "AIR_RESISTANCE" -ErrorAction SilentlyContinue)
+$has_bounds   = [bool](Select-String -Path "engine/physics/forces.py" -Pattern "world_size" -ErrorAction SilentlyContinue)
+$has_mitosis  = Test-Path "engine/biology/mitosis.py"
+$has_db       = Test-Path "core/database.py"
+
+# Actualizamos el contenido en cadena
+$content = Update-Hito $content "Resistencia Atmosférica" $has_friction
+$content = Update-Hito $content "Leyes de Frontera" $has_bounds
+$content = Update-Hito $content "Mecanismo de Mitosis" $has_mitosis
+$content = Update-Hito $content "Persistencia WAL" $has_db
+
+# Guardamos el resultado
 $content | Set-Content $path -Encoding UTF8
-Write-Host "📍 Roadmap sincronizado con el tejido del universo." -ForegroundColor Cyan
+Write-Host "✅ Roadmap sincronizado con la nueva estructura modular." -ForegroundColor Green

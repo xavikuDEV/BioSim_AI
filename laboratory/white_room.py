@@ -1,28 +1,36 @@
 # laboratory/white_room.py
 import sys
 from pathlib import Path
+
+# --- INYECCIÓN DE RUTA SSoT (DEBE SER LO PRIMERO) ---
+root_path = Path(__file__).resolve().parent.parent
+if str(root_path) not in sys.path:
+    sys.path.insert(0, str(root_path))
+
 from ursina import *
 from ursina.prefabs.first_person_controller import FirstPersonController
 import random
 
-# Inyección de rutas SSoT
-root_path = Path(__file__).resolve().parent.parent
-if str(root_path) not in sys.path: sys.path.insert(0, str(root_path))
-
+# Imports del Motor BioSim_AI
 from core.registry import REGISTRY
+from core.database import init_db, log_snapshot
+from core.logger import get_logger
 from engine.movement_engine import update_physics
 from engine.biology.metabolism import update_metabolism
-from core.database import init_db
+from engine.biology.mitosis import process_mitosis
 from laboratory.interface import LabUI
 from laboratory.controls import handle_god_keys
+
+logger = get_logger("LABORATORY")
 
 class LabState:
     def __init__(self):
         self.paused = False
         self.speed = 1.0
         self.current_count = 50
+        self.tick_counter = 0
 
-# --- SETUP ---
+# --- INICIALIZACIÓN ---
 init_db()
 app = Ursina()
 state = LabState()
@@ -35,9 +43,9 @@ sun = DirectionalLight(y=50, rotation=(45, 30, 0))
 ground = Entity(model='plane', scale=2000, texture='white_cube', 
                 texture_scale=(1000, 1000), color=color.rgba(255, 255, 255, 20))
 
-# CÁMARA PRO: FirstPersonController modificado para modo "Vuelo de Dios"
+# Cámara de Dios (FPS Mode)
 player = FirstPersonController(y=30, z=-100, gravity=0)
-player.cursor.visible = False # Oculta el puntero para inmersión
+player.cursor.visible = False
 
 visual_entities = []
 
@@ -47,48 +55,58 @@ def spawn_matter(count):
     visual_entities.clear()
     REGISTRY.clear()
     
-    print(f"🧬 Inyectando {count} entidades...")
+    logger.info(f"🧬 Inyectando {count} entidades en la Sala Blanca...")
     for _ in range(count):
         pos = [random.uniform(-20, 20), random.uniform(20, 60), random.uniform(-20, 20)]
         eid = REGISTRY.create_entity(pos=pos)
         if eid is not None:
-            # Obtenemos el tamaño real definido por su ADN
             dna = REGISTRY.biology[eid].genome
-            v_ent = Entity(
-                model='sphere', 
-                color=color.yellow, 
-                scale=dna.size, # <--- ¡Morfología Dinámica!
-                position=pos
-            )
+            v_ent = Entity(model='sphere', color=color.yellow, scale=dna.size, position=pos)
             visual_entities.append((eid, v_ent))
 
 spawn_matter(state.current_count)
 
 def input(key):
-    # Delegamos el control al módulo especializado
-    handle_god_keys(key, state, ui, spawn_matter)
+    handle_god_keys(key, state, ui, player, spawn_matter)
 
 def update():
     if not state.paused:
-        update_physics()
-        update_metabolism()
-        
-        to_destroy = []
-        for i, (eid, v_ent) in enumerate(visual_entities):
-            body = REGISTRY.physics[eid]
-            bio = REGISTRY.biology[eid]
+        try:
+            # 1. Motores del Universo
+            update_physics()
+            update_metabolism()
+            process_mitosis()
             
-            if body and bio:
-                v_ent.position = body.pos
-                energy_pct = clamp(bio.energy / bio.max_energy, 0, 1)
-                v_ent.color = lerp(color.red, color.yellow, energy_pct)
-            else:
-                destroy(v_ent)
-                to_destroy.append(i)
-        
-        for i in reversed(to_destroy): visual_entities.pop(i)
+            # 2. Telemetría (Cada 60 frames / 1 segundo aprox)
+            state.tick_counter += 1
+            if state.tick_counter % 60 == 0:
+                log_snapshot(state.tick_counter, REGISTRY)
 
-    # Movimiento vertical manual para el FirstPersonController (E arriba, Q abajo)
+            # 3. Sincronización Visual
+            to_destroy = []
+            for i, (eid, v_ent) in enumerate(visual_entities):
+                body = REGISTRY.physics[eid]
+                bio = REGISTRY.biology[eid]
+                
+                if body and bio:
+                    v_ent.position = body.pos
+                    # Color basado en Glucógeno (Tanque 1)
+                    energy_pct = clamp(bio.glycogen / 100.0, 0, 1)
+                    v_ent.color = lerp(color.red, color.yellow, energy_pct)
+                    
+                    # Si drena Proteína (Salud), se vuelve negro
+                    if bio.protein < 100:
+                        health_pct = clamp(bio.protein / 100.0, 0, 1)
+                        v_ent.color = lerp(color.black, color.red, health_pct)
+                else:
+                    destroy(v_ent)
+                    to_destroy.append(i)
+            
+            for i in reversed(to_destroy): visual_entities.pop(i)
+        except Exception as e:
+            logger.error(f"Fallo crítico en el loop de simulación: {e}")
+
+    # Movimiento vertical FPS (E/Q)
     if held_keys['e']: player.y += 0.5
     if held_keys['q']: player.y -= 0.5
 
