@@ -2,6 +2,7 @@
 import sys
 from pathlib import Path
 from ursina import *
+from engine.biology.metabolism import update_metabolism
 import random
 
 # --- SOBERANÍA DE RUTAS (RESTAURADA) ---
@@ -138,14 +139,29 @@ def input(key):
 # --- BUCLE DE ACTUALIZACIÓN ---
 def update():
     if not paused:
-        # 1. Ejecutar motor físico
+        # 1. Motores
         update_physics()
+        update_metabolism()
         
-        # 2. Sincronizar visuales
-        for eid, v_ent in visual_entities:
+        # 2. Sincronización y Limpieza
+        to_destroy = []
+        for i, (eid, v_ent) in enumerate(visual_entities):
             body = REGISTRY.physics[eid]
-            if body:
+            bio = REGISTRY.biology[eid]
+            
+            if body and bio:
                 v_ent.position = body.pos
-
+                
+                # Interpolación corregida: De rojo (muerte) a amarillo (vida)
+                # Aseguramos que el valor esté entre 0 y 1
+                energy_percent = clamp(bio.energy / bio.max_energy, 0, 1)
+                v_ent.color = lerp(color.red, color.yellow, energy_percent)
+            else:
+                destroy(v_ent)
+                to_destroy.append(i)
+        
+        for i in reversed(to_destroy):
+            visual_entities.pop(i)
+            
 if __name__ == "__main__":
     app.run()

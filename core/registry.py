@@ -29,6 +29,15 @@ class EntityRegistry:
         
         return entity_id
 
+    def remove_entity(self, entity_id):
+        """Retira una entidad del universo y libera su ID."""
+        if entity_id in self.active_entities:
+            self.active_entities.remove(entity_id)
+            self.available_ids.append(entity_id) # Devolvemos el ID al pool
+            # Limpiamos los componentes para evitar fantasmas
+            self.physics[entity_id] = None
+            self.biology[entity_id] = None
+
     def get_count(self):
         """Devuelve el número de entidades vivas."""
         return len(self.active_entities)
